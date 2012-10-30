@@ -4,8 +4,13 @@
 public class Main {
 
   public static void main(String[] args) {
-    BayesianNetwork bn = new BayesianNetwork();
 
+    BayesianNetwork bn = makeSprinkerBN();
+
+
+  }
+
+  public static BayesianNetwork makeSprinkerBN() {
     Node cloudy = new Node("cloudy", 2);
     cloudy.setCPT(new double[][] {{.5, .5}});
 
@@ -18,7 +23,8 @@ public class Main {
     Node grass = new Node("grass", 2, rain, sprinkler);
     grass.setCPT(new double[][] { {1, 0}, {.1, .9}, {.1, .9}, {.01, .99}});
 
-    bn.addNodes(cloudy, sprinkler, rain, grass);
+    BayesianNetwork bn = new BayesianNetwork(cloudy, sprinkler, rain, grass);
+    return bn;
   }
 
 }
