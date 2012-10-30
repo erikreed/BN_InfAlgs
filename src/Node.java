@@ -1,5 +1,3 @@
-
-
 /**
  * @author Erik Reed
  */
@@ -12,7 +10,7 @@ public class Node {
   private final int currentState = -1;
   public Node[] parents = null;
 
-  private double[] priors = null;
+  private double[][] cpt = null;
 
 
 
@@ -26,19 +24,26 @@ public class Node {
     this.numStates = states;
   }
 
-  public void setPriors(double[] priors) {
-    assert(valid());
+  public void setCPT(double[][] cpt) {
+    this.cpt = cpt;
+    validate();
   }
 
-  private boolean valid() {
-    if (priors.length != numStates) {
-      return false;
+  private void validate() {
+    if (cpt.length == 0) {
+      throw new Error("invalid CPT size");
     }
-    double sum = 0;
-    for (double d : priors) {
-      sum += d;
+    for (double[] row : cpt) {
+      if (row.length != numStates) {
+        throw new Error("invalid CPT size");
+      }
+      double sum = 0;
+      for (double cp : row) {
+        sum += cp;
+      }
+      if (sum <= BayesianNetwork.DOUBLE_EPSILON) {
+        throw new Error("invalid CPT entries");
+      }
     }
-    return sum <= BayesianNetwork.DOUBLE_EPSILON;
   }
-
 }
