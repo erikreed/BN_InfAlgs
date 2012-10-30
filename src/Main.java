@@ -6,8 +6,7 @@ public class Main {
   public static void main(String[] args) {
 
     BayesianNetwork bn = makeSprinkerBN();
-
-
+    bn.query("cloudy");
   }
 
   public static BayesianNetwork makeSprinkerBN() {
@@ -26,5 +25,4 @@ public class Main {
     BayesianNetwork bn = new BayesianNetwork(cloudy, sprinkler, rain, grass);
     return bn;
   }
-
 }

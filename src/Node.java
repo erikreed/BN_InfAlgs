@@ -71,4 +71,24 @@ public class Node {
     }
     return false;
   }
+
+  public int getTopologicalSortOrder() {
+    return topologicalSortHelper(this, 0);
+  }
+
+  private static int topologicalSortHelper(Node n, int depth) {
+    if (n.parents == null) {
+      return depth;
+    }
+    int maxDepth = depth;
+    for (Node p : n.parents) {
+      maxDepth = Math.max(topologicalSortHelper(p, depth + 1), maxDepth);
+    }
+    return maxDepth;
+  }
+
+  @Override
+  public String toString() {
+    return name;
+  }
 }
