@@ -1,20 +1,44 @@
-import java.util.List;
 
 
+/**
+ * @author Erik Reed
+ */
 public class Node {
 
-  private final int id;
-  private final String name;
-  private final int numStates;
+  public int id;
+  public final String name;
+  public final int numStates;
 
   private final int currentState = -1;
-  private final List<Node> parents;
+  public Node[] parents = null;
 
-  public Node(String name, int id, int states, List<Node> parents) {
-    this.id = id;
-    this.name = name;
-    this.numStates = states;
+  private double[] priors = null;
+
+
+
+  public Node(String name, int states, Node... parents) {
+    this(name, states);
     this.parents = parents;
+  }
+
+  public Node(String name, int states) {
+    this.name = name.toLowerCase();
+    this.numStates = states;
+  }
+
+  public void setPriors(double[] priors) {
+    assert(valid());
+  }
+
+  private boolean valid() {
+    if (priors.length != numStates) {
+      return false;
+    }
+    double sum = 0;
+    for (double d : priors) {
+      sum += d;
+    }
+    return sum <= BayesianNetwork.DOUBLE_EPSILON;
   }
 
 }
