@@ -1,9 +1,11 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 
 /**
@@ -63,7 +65,64 @@ public class BayesianNetwork {
   }
 
   public void query(String name) {
-    Node n = getNode(name);
+    Map<Node, Double[]> states = new HashMap<Node, Double[]>();
+    for (Node n : nodes) {
+      assert !states.containsKey(n);
+      if (n.parents == null) {
+        states.put(n, n.getCPT()[0]);
+      } else {
+        Double[][] cpt = n.getCPT();
+        Double[] nodeStates = zeros(new Double[n.numStates]);
+        for (int i = 0; i < n.parents.length; i++) {
+          Double[] parentStates = states.get(n.parents[i]);
+          assert n.parents[i].numStates == parentStates.length;
+          for (int j = 0; j < nodeStates.length; j++) {
+            nodeStates[j] += parentStates[i] * cpt[i][j];
+          }
+        }
+        states.put(n, nodeStates);
+      }
+    }
+    printStates(states);
+  }
+
+  private void printStates(Map<Node, Double[]> states) {
+    for (Entry<Node, Double[]> entry : states.entrySet()) {
+      System.out.println(entry.getKey() + ": " + Arrays.toString(entry.getValue()));
+    }
+  }
+
+  private int rowMaxIndex(double[] row) {
+    assert row.length > 0;
+    int index = 0;
+    double max = row[0];
+    for (int i = 1; i < row.length; i++) {
+      if (max < row[i]) {
+        max = row[i];
+        index = i;
+      }
+    }
+    return index;
+  }
+
+  private Double[] logArray(Double[] row) {
+    Double[] logArray = new Double[row.length];
+    for (int i = 0; i < row.length; i++) {
+      logArray[i] = Math.log(row[i]);
+    }
+    return logArray;
+  }
+
+  private Double[] setToValue(Double[] row, double val) {
+    for (int i = 0; i < row.length; i++) {
+      row[i] = val;
+    }
+    return row;
+  }
+
+  private Double[] zeros(Double[] row) {
+    setToValue(row, 0.0);
+    return row;
   }
 
   private void topologicalSort() {
@@ -74,7 +133,7 @@ public class BayesianNetwork {
     Comparator<Node> c = new Comparator<Node>() {
       @Override
       public int compare(Node n1, Node n2) {
-        return Integer.compare(depths.get(n2), depths.get(n1));
+        return Integer.compare(depths.get(n1), depths.get(n2));
       }
     };
     Collections.sort(nodes, c);

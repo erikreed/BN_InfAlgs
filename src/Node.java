@@ -9,7 +9,7 @@ public class Node {
 
   public Node[] parents = null;
 
-  private double[][] cpt = null;
+  private Double[][] cpt = null;
 
   public Node(String name, int states, Node... parents) {
     this(name, states);
@@ -21,7 +21,7 @@ public class Node {
     this.numStates = states;
   }
 
-  public void setCPT(double[][] cpt) {
+  public void setCPT(Double[][] cpt) {
     this.cpt = cpt;
     validate();
   }
@@ -37,7 +37,7 @@ public class Node {
       }
     }
     int cptSize = 0;
-    for (double[] row : cpt) {
+    for (Double[] row : cpt) {
       cptSize += row.length;
       if (row.length != numStates) {
         throw new Error("invalid CPT size -- unexpected num of cols");
@@ -90,5 +90,9 @@ public class Node {
   @Override
   public String toString() {
     return name;
+  }
+
+  public Double[][] getCPT() {
+    return cpt;
   }
 }
