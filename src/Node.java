@@ -46,7 +46,7 @@ public class Node {
       for (double cp : row) {
         sum += cp;
       }
-      if (sum <= BayesianNetwork.DOUBLE_EPSILON) {
+      if (sum <= BayesianNetwork.DOUBLE_EPSILON || sum > 1) {
         throw new Error("invalid CPT entries -- not summing to 1");
       }
     }
