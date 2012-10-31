@@ -77,7 +77,9 @@ public class BayesianNetwork {
           Double[] parentStates = states.get(n.parents[i]);
           assert n.parents[i].numStates == parentStates.length;
           for (int j = 0; j < nodeStates.length; j++) {
-            nodeStates[j] += parentStates[i] * cpt[i][j];
+            for (int k = 0; k < parentStates.length; k++) {
+              nodeStates[j] += parentStates[k] * cpt[k][j];
+            }
           }
         }
         states.put(n, nodeStates);
