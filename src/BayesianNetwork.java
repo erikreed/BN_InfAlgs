@@ -64,8 +64,19 @@ public class BayesianNetwork {
 
   }
 
-  public void query(String name) {
-    Map<Node, Double[]> states = new HashMap<Node, Double[]>();
+  public Map<Node, Double[]> jointProbability() {
+    return inference(new HashMap<Node, Double[]>());
+  }
+
+  public Map<Node, Integer> mostProbableExplanation(Map<Node, Double[]> states) {
+    Map<Node, Integer> expected = new HashMap<Node, Integer>();
+    for (Entry<Node, Double[]> node : states.entrySet()) {
+      expected.put(node.getKey(), argMax(node.getValue()));
+    }
+    return expected;
+  }
+
+  private Map<Node, Double[]> inference(Map<Node, Double[]> states) {
     for (Node n : nodes) {
       assert !states.containsKey(n);
       if (n.parents == null) {
@@ -75,11 +86,7 @@ public class BayesianNetwork {
         Double[] nodeStates = zeros(new Double[n.numStates]);
 
         for (int j = 0; j < n.numCptRows(); j++) {
-          int[] parentStates = rowIndexToParentStates(j, n.parents);
-          double parentProbs = 1;
-          for (int k = 0; k < n.parents.length; k++) {
-            parentProbs *= states.get(n.parents[k])[parentStates[k]];
-          }
+          double parentProbs = parentProbs(j, n.parents, states);
           for (int i = 0; i < n.numStates; i++) {
             nodeStates[i] += parentProbs * cpt[j][i];
           }
@@ -87,30 +94,29 @@ public class BayesianNetwork {
         states.put(n, nodeStates);
       }
     }
-    printStates(states);
+    return states;
   }
 
-  private int[] rowIndexToParentStates(int row, Node[] parents) {
-    int[] parentStates = new int[parents.length];
-    int currentIndex = parents[0].numStates;
-    parentStates[0] = row % currentIndex;
-    for (int k = 1; k < parents.length; k++) {
-      parentStates[k] = row / currentIndex % parents[k].numStates;
+  private double parentProbs(int row, Node[] parents, Map<Node, Double[]> states) {
+    int currentIndex = 1;
+    double parentProbs = 1;
+    for (int k = 0; k < parents.length; k++) {
+      parentProbs *= states.get(parents[k])[row / currentIndex % parents[k].numStates];
       currentIndex *= parents[k].numStates;
     }
-    return parentStates;
+    return parentProbs;
   }
 
-  private void printStates(Map<Node, Double[]> states) {
+  public static void printStates(Map<Node, Double[]> states) {
     for (Entry<Node, Double[]> entry : states.entrySet()) {
       System.out.println(entry.getKey() + ": " + Arrays.toString(entry.getValue()));
     }
   }
 
-  private int rowMaxIndex(double[] row) {
+  private int argMax(Double[] row) {
     assert row.length > 0;
     int index = 0;
-    double max = row[0];
+    Double max = row[0];
     for (int i = 1; i < row.length; i++) {
       if (max < row[i]) {
         max = row[i];
