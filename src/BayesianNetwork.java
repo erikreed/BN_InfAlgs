@@ -21,7 +21,7 @@ public class BayesianNetwork {
   private final Map<Node, Integer> clampedNodes = new HashMap<Node, Integer>();
 
   public InferenceType inferenceType = InferenceType.FullJoint;
-  public static final double double_EPSILON = 1 - 1e-12;
+  public static final double DOUBLE_EPSILON = 1 - 1e-12;
 
   public BayesianNetwork(Node... nodes) {
     addNodes(nodes);
