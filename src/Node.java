@@ -95,4 +95,9 @@ public class Node {
   public Double[][] getCPT() {
     return cpt;
   }
+
+  public int numCptRows() {
+    return cpt.length;
+  }
+
 }

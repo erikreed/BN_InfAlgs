@@ -73,19 +73,32 @@ public class BayesianNetwork {
       } else {
         Double[][] cpt = n.getCPT();
         Double[] nodeStates = zeros(new Double[n.numStates]);
-        for (int i = 0; i < n.parents.length; i++) {
-          Double[] parentStates = states.get(n.parents[i]);
-          assert n.parents[i].numStates == parentStates.length;
-          for (int j = 0; j < nodeStates.length; j++) {
-            for (int k = 0; k < parentStates.length; k++) {
-              nodeStates[j] += parentStates[k] * cpt[k][j];
-            }
+
+        for (int j = 0; j < n.numCptRows(); j++) {
+          int[] parentStates = rowIndexToParentStates(j, n.parents);
+          double parentProbs = 1;
+          for (int k = 0; k < n.parents.length; k++) {
+            parentProbs *= states.get(n.parents[k])[parentStates[k]];
+          }
+          for (int i = 0; i < n.numStates; i++) {
+            nodeStates[i] += parentProbs * cpt[j][i];
           }
         }
         states.put(n, nodeStates);
       }
     }
     printStates(states);
+  }
+
+  private int[] rowIndexToParentStates(int row, Node[] parents) {
+    int[] parentStates = new int[parents.length];
+    int currentIndex = parents[0].numStates;
+    parentStates[0] = row % currentIndex;
+    for (int k = 1; k < parents.length; k++) {
+      parentStates[k] = row / currentIndex % parents[k].numStates;
+      currentIndex *= parents[k].numStates;
+    }
+    return parentStates;
   }
 
   private void printStates(Map<Node, Double[]> states) {
@@ -123,8 +136,7 @@ public class BayesianNetwork {
   }
 
   private Double[] zeros(Double[] row) {
-    setToValue(row, 0.0);
-    return row;
+    return setToValue(row, 0.0);
   }
 
   private void topologicalSort() {
