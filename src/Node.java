@@ -9,7 +9,7 @@ public class Node {
 
   public Node[] parents = null;
 
-  private Double[][] cpt = null;
+  private double[][] cpt = null;
 
   public Node(String name, int states, Node... parents) {
     this(name, states);
@@ -21,7 +21,7 @@ public class Node {
     this.numStates = states;
   }
 
-  public void setCPT(Double[][] cpt) {
+  public void setCPT(double[][] cpt) {
     this.cpt = cpt;
     validate();
   }
@@ -37,7 +37,7 @@ public class Node {
       }
     }
     int cptSize = 0;
-    for (Double[] row : cpt) {
+    for (double[] row : cpt) {
       cptSize += row.length;
       if (row.length != numStates) {
         throw new Error("invalid CPT size -- unexpected num of cols");
@@ -46,7 +46,7 @@ public class Node {
       for (double cp : row) {
         sum += cp;
       }
-      if (sum <= BayesianNetwork.DOUBLE_EPSILON || sum > 1) {
+      if (sum <= BayesianNetwork.double_EPSILON || sum > 1) {
         throw new Error("invalid CPT entries -- not summing to 1");
       }
     }
@@ -92,7 +92,7 @@ public class Node {
     return name;
   }
 
-  public Double[][] getCPT() {
+  public double[][] getCPT() {
     return cpt;
   }
 

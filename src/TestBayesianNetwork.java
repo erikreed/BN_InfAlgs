@@ -13,30 +13,30 @@ public class TestBayesianNetwork {
   @Test
   public void testCpt1() {
     Node n = new Node("BN_Node", 2);
-    n.setCPT(new Double[][] {{.5, .5}});
+    n.setCPT(new double[][] {{.5, .5}});
   }
 
   @Test(expected = Error.class)
   public void testCptFail1() {
     Node n = new Node("BN_Node", 2);
-    n.setCPT(new Double[][] {{.5, .5, .3}});
+    n.setCPT(new double[][] {{.5, .5, .3}});
   }
 
   @Test(expected = Error.class)
   public void testCptFail2() {
     Node n = new Node("BN_Node", 2);
-    n.setCPT(new Double[][] {{.5, .5}, {.3, .7}});
+    n.setCPT(new double[][] {{.5, .5}, {.3, .7}});
   }
 
   @Test(expected = Error.class)
   public void testCptFail3() {
     Node n = new Node("BN_Node", 2);
-    n.setCPT(new Double[][] {{.5, .6}});
+    n.setCPT(new double[][] {{.5, .6}});
   }
 
   @Test(expected = Error.class)
   public void testCptFail4() {
     Node n = new Node("BN_Node", 2);
-    n.setCPT(new Double[][] {{.5, .3}});
+    n.setCPT(new double[][] {{.5, .3}});
   }
 }

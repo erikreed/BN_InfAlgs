@@ -21,7 +21,7 @@ public class BayesianNetwork {
   private final Map<Node, Integer> clampedNodes = new HashMap<Node, Integer>();
 
   public InferenceType inferenceType = InferenceType.FullJoint;
-  public static final double DOUBLE_EPSILON = 1 - 1e-12;
+  public static final double double_EPSILON = 1 - 1e-12;
 
   public BayesianNetwork(Node... nodes) {
     addNodes(nodes);
@@ -68,35 +68,33 @@ public class BayesianNetwork {
     clampedNodes.clear();
   }
 
-  public Map<Node, Double[]> jointProbability() {
+  public Map<Node, double[]> jointProbability() {
     return inference(clampedStates());
   }
 
   public Map<Node, Integer> mostProbableExplanation() {
-    return mostProbableExplanation(clampedStates());
+    return mostProbableExplanation(jointProbability());
   }
 
-  private Map<Node, Integer> mostProbableExplanation(Map<Node, Double[]> states) {
+  private Map<Node, Integer> mostProbableExplanation(Map<Node, double[]> states) {
     Map<Node, Integer> expected = new HashMap<Node, Integer>();
-    for (Entry<Node, Double[]> node : states.entrySet()) {
+    for (Entry<Node, double[]> node : states.entrySet()) {
       expected.put(node.getKey(), argMax(node.getValue()));
     }
     return expected;
   }
 
-  // TODO: Double to double (no longer necessary)
-
-  private Map<Node, Double[]> clampedStates() {
-    Map<Node, Double[]> states = new HashMap<Node, Double[]>();
+  private Map<Node, double[]> clampedStates() {
+    Map<Node, double[]> states = new HashMap<Node, double[]>();
     for (Entry<Node, Integer> node : clampedNodes.entrySet()) {
-      Double[] probs = zeros(new Double[node.getKey().numStates]);
+      double[] probs = new double[node.getKey().numStates];
       probs[node.getValue()] = 1.0;
       states.put(node.getKey(), probs);
     }
     return states;
   }
 
-  private Map<Node, Double[]> inference(Map<Node, Double[]> states) {
+  private Map<Node, double[]> inference(Map<Node, double[]> states) {
     switch (inferenceType) {
       case FullJoint:
         return jointTable(states);
@@ -107,14 +105,17 @@ public class BayesianNetwork {
     }
   }
 
-  private Map<Node, Double[]> jointTable(Map<Node, Double[]> states) {
+  private Map<Node, double[]> jointTable(Map<Node, double[]> states) {
     for (Node n : nodes) {
-      assert !states.containsKey(n);
+      if (states.containsKey(n)) {
+        // Node is clamped.
+        continue;
+      }
       if (n.parents == null) {
         states.put(n, n.getCPT()[0]);
       } else {
-        Double[][] cpt = n.getCPT();
-        Double[] nodeStates = zeros(new Double[n.numStates]);
+        double[][] cpt = n.getCPT();
+        double[] nodeStates = new double[n.numStates];
 
         for (int j = 0; j < n.numCptRows(); j++) {
           double parentProbs = parentProbs(j, n.parents, states);
@@ -128,7 +129,7 @@ public class BayesianNetwork {
     return states;
   }
 
-  private double parentProbs(int row, Node[] parents, Map<Node, Double[]> states) {
+  private double parentProbs(int row, Node[] parents, Map<Node, double[]> states) {
     int currentIndex = 1;
     double parentProbs = 1;
     for (int k = 0; k < parents.length; k++) {
@@ -138,16 +139,16 @@ public class BayesianNetwork {
     return parentProbs;
   }
 
-  public static void printStates(Map<Node, Double[]> states) {
-    for (Entry<Node, Double[]> entry : states.entrySet()) {
+  public static void printStates(Map<Node, double[]> states) {
+    for (Entry<Node, double[]> entry : states.entrySet()) {
       System.out.println(entry.getKey() + ": " + Arrays.toString(entry.getValue()));
     }
   }
 
-  private int argMax(Double[] row) {
+  private int argMax(double[] row) {
     assert row.length > 0;
     int index = 0;
-    Double max = row[0];
+    double max = row[0];
     for (int i = 1; i < row.length; i++) {
       if (max < row[i]) {
         max = row[i];
@@ -157,22 +158,22 @@ public class BayesianNetwork {
     return index;
   }
 
-  private Double[] logArray(Double[] row) {
-    Double[] logArray = new Double[row.length];
+  private double[] logArray(double[] row) {
+    double[] logArray = new double[row.length];
     for (int i = 0; i < row.length; i++) {
       logArray[i] = Math.log(row[i]);
     }
     return logArray;
   }
 
-  private Double[] setToValue(Double[] row, double val) {
+  private double[] setToValue(double[] row, double val) {
     for (int i = 0; i < row.length; i++) {
       row[i] = val;
     }
     return row;
   }
 
-  private Double[] zeros(Double[] row) {
+  private double[] zeros(double[] row) {
     return setToValue(row, 0.0);
   }
 
