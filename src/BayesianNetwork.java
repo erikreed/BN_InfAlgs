@@ -18,8 +18,10 @@ public class BayesianNetwork {
   }
 
   private final List<Node> nodes = new ArrayList<Node>();
+  private final Map<Node, Integer> clampedNodes = new HashMap<Node, Integer>();
 
-  public static final double DOUBLE_EPSILON = .999999;
+  public InferenceType inferenceType = InferenceType.FullJoint;
+  public static final double DOUBLE_EPSILON = 1 - 1e-12;
 
   public BayesianNetwork(Node... nodes) {
     addNodes(nodes);
@@ -33,7 +35,7 @@ public class BayesianNetwork {
     }
   }
 
-  public Node getNode(String name) {
+  private Node getNode(String name) {
     name = name.toLowerCase();
     for (Node n : nodes) {
       if (n.name.equals(name)) {
@@ -43,7 +45,7 @@ public class BayesianNetwork {
     throw new Error("node not found");
   }
 
-  public Node getNode(int id) {
+  private Node getNode(int id) {
     for (Node n : nodes) {
       if (n.id == id) {
         return n;
@@ -52,23 +54,29 @@ public class BayesianNetwork {
     throw new Error("node not found");
   }
 
-  public double stateProbability(Map<Node, Integer> states) {
-    if (states.size() != nodes.size()) {
-      throw new Error("states != num nodes");
-    }
-
-    return 0;
+  private void clampNode(Node n, int state) {
+    assert nodes.contains(n);
+    clampedNodes.put(n, state);
   }
 
-  private void query(Node n, Map<Node, Integer> states) {
+  public void clampNode(String name, int state) {
+    Node n = getNode(name);
+    clampNode(n, state);
+  }
 
+  public void clearClampedNodes() {
+    clampedNodes.clear();
   }
 
   public Map<Node, Double[]> jointProbability() {
-    return inference(new HashMap<Node, Double[]>());
+    return inference(clampedStates());
   }
 
-  public Map<Node, Integer> mostProbableExplanation(Map<Node, Double[]> states) {
+  public Map<Node, Integer> mostProbableExplanation() {
+    return mostProbableExplanation(clampedStates());
+  }
+
+  private Map<Node, Integer> mostProbableExplanation(Map<Node, Double[]> states) {
     Map<Node, Integer> expected = new HashMap<Node, Integer>();
     for (Entry<Node, Double[]> node : states.entrySet()) {
       expected.put(node.getKey(), argMax(node.getValue()));
@@ -76,7 +84,30 @@ public class BayesianNetwork {
     return expected;
   }
 
+  // TODO: Double to double (no longer necessary)
+
+  private Map<Node, Double[]> clampedStates() {
+    Map<Node, Double[]> states = new HashMap<Node, Double[]>();
+    for (Entry<Node, Integer> node : clampedNodes.entrySet()) {
+      Double[] probs = zeros(new Double[node.getKey().numStates]);
+      probs[node.getValue()] = 1.0;
+      states.put(node.getKey(), probs);
+    }
+    return states;
+  }
+
   private Map<Node, Double[]> inference(Map<Node, Double[]> states) {
+    switch (inferenceType) {
+      case FullJoint:
+        return jointTable(states);
+      case VariableElimination:
+      case JunctionTree:
+      default:
+        throw new Error("Unknown or unimplemented inference type");
+    }
+  }
+
+  private Map<Node, Double[]> jointTable(Map<Node, Double[]> states) {
     for (Node n : nodes) {
       assert !states.containsKey(n);
       if (n.parents == null) {
