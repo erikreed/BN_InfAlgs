@@ -35,7 +35,7 @@ public class BayesianNetwork {
     }
   }
 
-  private Node getNode(String name) {
+  public Node getNode(String name) {
     name = name.toLowerCase();
     for (Node n : nodes) {
       if (n.name.equals(name)) {

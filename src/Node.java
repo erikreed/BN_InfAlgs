@@ -8,6 +8,7 @@ public class Node {
   public final int numStates;
 
   public Node[] parents = null;
+  public Node[] children = null;
 
   private double[][] cpt = null;
 
@@ -99,5 +100,4 @@ public class Node {
   public int numCptRows() {
     return cpt.length;
   }
-
 }
