@@ -1,3 +1,5 @@
+import java.util.Map;
+
 /**
  * @author Erik Reed
  */
@@ -73,19 +75,35 @@ public class Node {
     return false;
   }
 
-  public int getTopologicalSortOrder() {
-    return topologicalSortHelper(this, 0);
+  public int getTopologicalSortOrder(Map<Node, Integer> depths) {
+    return topologicalSortHelper(this, 0, depths);
   }
 
-  private static int topologicalSortHelper(Node n, int depth) {
-    if (n.parents == null) {
-      return depth;
+  private static int topologicalSortHelper(Node n, int depth, Map<Node, Integer> depths) {
+    if (depths.containsKey(n)) {
+      return depths.get(n) + depth;
     }
-    int maxDepth = depth;
-    for (Node p : n.parents) {
-      maxDepth = Math.max(topologicalSortHelper(p, depth + 1), maxDepth);
+    int maxDepth1 = depth;
+    int maxDepth2 = depth;
+
+    if (n.parents != null) {
+      for (Node p : n.parents) {
+        maxDepth1 = Math.max(topologicalSortHelper(p, depth + 1, depths), maxDepth1);
+      }
     }
-    return maxDepth;
+
+    depth = Math.max(maxDepth1, maxDepth2);
+    depths.put(n, depth);
+
+    if (n.children != null) {
+      for (Node p : n.children) {
+        maxDepth2 = Math.min(topologicalSortHelper(p, depth + 1, depths), maxDepth2);
+      }
+      depth = Math.max(maxDepth1, maxDepth2);
+      depths.put(n, depth);
+    }
+
+    return depth;
   }
 
   @Override

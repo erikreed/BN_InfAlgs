@@ -17,7 +17,7 @@ public class BayesianNetwork {
     FullJoint, VariableElimination, JunctionTree
   }
 
-  private final List<Node> nodes = new ArrayList<Node>();
+  public final List<Node> nodes = new ArrayList<Node>();
   private final Map<Node, Integer> clampedNodes = new HashMap<Node, Integer>();
 
   public InferenceType inferenceType = InferenceType.FullJoint;
@@ -25,7 +25,6 @@ public class BayesianNetwork {
 
   public BayesianNetwork(Node... nodes) {
     addNodes(nodes);
-    topologicalSort();
   }
 
   private void addNodes(Node... newNodes) {
@@ -33,8 +32,31 @@ public class BayesianNetwork {
       node.id = nodes.size();
       nodes.add(node);
     }
+    updateChildren();
   }
 
+  private void updateChildren() {
+    // update children of each node.
+    Map<Node, ArrayList<Node>> nodeChildren = new HashMap<Node, ArrayList<Node>>();
+    for (final Node node : nodes) {
+      if (node.parents != null) {
+        for (final Node p : node.parents) {
+          if (nodeChildren.containsKey(p)) {
+            nodeChildren.get(p).add(node);
+          } else {
+            ArrayList<Node> children = new ArrayList<Node>();
+            children.add(node);
+            nodeChildren.put(p, children);
+          }
+        }
+      }
+    }
+    for (Entry<Node, ArrayList<Node>> node : nodeChildren.entrySet()) {
+      node.getKey().children = node.getValue().toArray(new Node[node.getValue().size()]);
+    }
+  }
+
+  // TODO: use a hashmap instead
   public Node getNode(String name) {
     name = name.toLowerCase();
     for (Node n : nodes) {
@@ -95,6 +117,7 @@ public class BayesianNetwork {
   }
 
   private Map<Node, double[]> inference(Map<Node, double[]> states) {
+    topologicalSort();
     switch (inferenceType) {
       case FullJoint:
         return jointTable(states);
@@ -159,11 +182,17 @@ public class BayesianNetwork {
   }
 
   private double[] logArray(double[] row) {
-    double[] logArray = new double[row.length];
     for (int i = 0; i < row.length; i++) {
-      logArray[i] = Math.log(row[i]);
+      row[i] = Math.log(row[i]);
     }
-    return logArray;
+    return row;
+  }
+
+  private double[] expArray(double[] row) {
+    for (int i = 0; i < row.length; i++) {
+      row[i] = Math.exp(row[i]);
+    }
+    return row;
   }
 
   private double[] setToValue(double[] row, double val) {
@@ -179,8 +208,11 @@ public class BayesianNetwork {
 
   private void topologicalSort() {
     final Map<Node, Integer> depths = new HashMap<Node, Integer>();
+    for (Entry<Node, Integer> node : clampedNodes.entrySet()) {
+      depths.put(node.getKey(), 0);
+    }
     for (Node n : nodes) {
-      depths.put(n, n.getTopologicalSortOrder());
+      depths.put(n, n.getTopologicalSortOrder(depths));
     }
     Comparator<Node> c = new Comparator<Node>() {
       @Override
